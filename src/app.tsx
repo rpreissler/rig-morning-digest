@@ -45,5 +45,21 @@ export function createApp(config: RigConfig = loadConfig()) {
     );
   });
 
+  // Plan § 2b. The reader's rows verbatim, in the reader's order (sorted by job):
+  // the page and this JSON must never disagree (ADR 0001). A night with no file
+  // and a night that isn't YYYY-MM-DD (readNight throws TypeError) are both 404,
+  // never 500.
+  app.get('/api/digest/:night', (c) => {
+    const night = c.req.param('night');
+    try {
+      const digest = readNight(config.runsDir, night);
+      if (digest === null) return c.json({ error: `no digest for ${night}` }, 404);
+      return c.json(digest);
+    } catch (err) {
+      if (err instanceof TypeError) return c.json({ error: 'night must be YYYY-MM-DD' }, 404);
+      throw err;
+    }
+  });
+
   return app;
 }
