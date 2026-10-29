@@ -1,6 +1,11 @@
+import type { NightBoardRow } from '../digest/nightCounts.js';
 import type { Status } from '../status.js';
 
-export function StatusBoard({ status }: { status: Status }) {
+// Pure view (styleguide): the app computes the rows, this renders them.
+// `nights` parallels status.nights — each night links to its digest with its
+// ok / retry / fail counts beside it (plan § 2c). `counts === null` means the
+// file isn't there: render `—`, never drop the row.
+export function StatusBoard({ status, nights }: { status: Status; nights: NightBoardRow[] }) {
   return (
     <>
       <h1>status</h1>
@@ -19,8 +24,17 @@ export function StatusBoard({ status }: { status: Status }) {
         <p class="mute">nothing in runs/</p>
       ) : (
         <ul>
-          {status.nights.map((n) => (
-            <li>{n}</li>
+          {nights.map(({ night, counts }) => (
+            <li>
+              <a href={`/digest/${night}`}>{night}</a>{' '}
+              {counts === null ? (
+                <span class="mute">—</span>
+              ) : (
+                <span class="mute">
+                  ok {counts.ok} · retry {counts.retry} · fail {counts.fail}
+                </span>
+              )}
+            </li>
           ))}
         </ul>
       )}

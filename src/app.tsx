@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { boardNights } from './digest/nightCounts.js';
 import { loadConfig, type RigConfig } from './config.js';
 import { readNight } from './digest/read.js';
 import type { NightDigest } from './digest/types.js';
@@ -13,13 +14,15 @@ export function createApp(config: RigConfig = loadConfig()) {
 
   app.get('/health', (c) => c.json({ ok: true, lane: lane().id }));
 
-  app.get('/', (c) =>
-    c.html(
+  app.get('/', (c) => {
+    const status = readStatus(config);
+    return c.html(
       <Layout title="status" lane={lane()}>
-        <StatusBoard status={readStatus(config)} />
+        {/* issue #4 (plan § 2c): each night links to its digest, ok/retry/fail beside it */}
+        <StatusBoard status={status} nights={boardNights(config.runsDir, status.nights)} />
       </Layout>,
-    ),
-  );
+    );
+  });
 
   app.get('/digest/:night', (c) => {
     const night = c.req.param('night');
