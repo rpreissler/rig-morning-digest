@@ -9,6 +9,13 @@ Read first: `docs/vision.md`, `docs/styleguide.md`. Decisions: `docs/adr/`.
 
 - `pnpm dev` / `pnpm start`: serves on `PORT` (8787). Needs `.env` (copy `.env.example`).
 - `pnpm test`: vitest. `pnpm typecheck`: tsc.
+- `pnpm verify` (`node verify.mjs [night]`): boots the service on a free port, re-reads the
+  nights in `runs/`, and asserts that the log, `/api/digest/<night>` and `/digest/<night>`
+  agree — same rows, same order, same counts, the lane marker exactly once, bad nights as 404
+  and never 500. No model in the loop: it re-derives the expected rows from the raw log, so a
+  change to the reader has to be matched in `verify.mjs` to stay green. Needs the same Node 22+
+  that runs `pnpm start`; on an older Node it stops with `FAIL node 22 or newer`, which counts
+  as red, never as skipped.
 
 ## How work moves here
 
@@ -28,7 +35,10 @@ Read first: `docs/vision.md`, `docs/styleguide.md`. Decisions: `docs/adr/`.
    ```
 
 5. An issue is closed only when its "Done when" holds. If it can't hold yet, leave it open and
-   say what it waits on.
+   say what it waits on. Before you close, run `pnpm test`, `pnpm typecheck` and `pnpm verify`
+   and put the result in the closing comment: `verify: ok (n checks)` or `verify: fail — <the
+   first FAIL line>`. Reading the diff is not a check; an issue that only looks right in a demo
+   stays open.
 
 ## Skills
 
